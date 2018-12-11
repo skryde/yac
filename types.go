@@ -10,7 +10,7 @@ type Cmd struct {
 }
 
 type Cron struct {
-	Command Cmd             `json:"command"`
+	Command   Cmd           `json:"command"`
 	TimeLapse time.Duration `json:"time_lapse"`
 	TimeUnit  time.Duration `json:"time_unit"`
 }

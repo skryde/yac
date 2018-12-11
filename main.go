@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -15,10 +16,24 @@ const cronsFile = "crons.json"
 var crons Crons
 
 func init() {
+	var (
+		cmdPath string
+		cmdArg  string
+	)
+
+	if runtime.GOOS == "windows" {
+		cmdPath = fmt.Sprintf("%s\\System32\\cmd.exe", os.Getenv("WINDIR"))
+		cmdArg = fmt.Sprintf("%s\\bin\\script.bat", os.Getenv("USERPROFILE"))
+
+	} else {
+		cmdPath = "/bin/bash"
+		cmdArg = "~/bin/script.sh"
+	}
+
 	switch jsconf.Exist(cronsFile) {
 	case jsconf.NotExist:
 		crons = Crons{}
-		crons = append(crons, Cron{Command: Cmd{Path: "/bin/bash", Args: []string{"~/bin/script.sh"}}, TimeLapse: 5, TimeUnit: time.Second})
+		crons = append(crons, Cron{Command: Cmd{Path: cmdPath, Args: []string{cmdArg}}, TimeLapse: 5, TimeUnit: time.Minute})
 
 		err := jsconf.SaveToFile(cronsFile, crons)
 		if err != nil {
