@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"runtime"
 	"sync"
 	"time"
@@ -18,22 +19,22 @@ var crons Crons
 func init() {
 	var (
 		cmdPath string
-		cmdArg  string
+		cmdArg  []string
 	)
 
 	if runtime.GOOS == "windows" {
 		cmdPath = fmt.Sprintf("%s\\System32\\cmd.exe", os.Getenv("WINDIR"))
-		cmdArg = fmt.Sprintf("%s\\bin\\script.bat", os.Getenv("USERPROFILE"))
+		cmdArg = []string{"/C", fmt.Sprintf("%s\\bin\\script.bat", os.Getenv("USERPROFILE"))}
 
 	} else {
 		cmdPath = "/bin/bash"
-		cmdArg = "~/bin/script.sh"
+		cmdArg = []string{"~/bin/script.sh"}
 	}
 
 	switch jsconf.Exist(cronsFile) {
 	case jsconf.NotExist:
 		crons = Crons{}
-		crons = append(crons, Cron{Command: Cmd{Path: cmdPath, Args: []string{cmdArg}}, TimeLapse: 5, TimeUnit: time.Minute})
+		crons = append(crons, Cron{Command: Cmd{Path: cmdPath, Args: cmdArg}, TimeLapse: 5, TimeUnit: time.Minute})
 
 		err := jsconf.SaveToFile(cronsFile, crons)
 		if err != nil {
@@ -57,22 +58,39 @@ func init() {
 func main() {
 	wg := sync.WaitGroup{}
 
+	// Handling signals.
+	signalsChan := make(chan os.Signal, 1)
+	signal.Notify(signalsChan, os.Interrupt)
+
+	// 'done' is used to stop the for loops user for each task.
+	var done = false
+	go func() {
+		select {
+		case <-signalsChan:
+			done = true
+		}
+	}()
+
 	for _, cron := range crons {
 		wg.Add(1)
 
-		go func() {
-			for true {
+		go func(cron Cron) {
+			defer wg.Done()
+
+			for !done {
 				cmd := exec.Command(cron.Command.Path, cron.Command.Args...)
 				err := cmd.Run()
 				if err != nil {
 					log.Fatalln(err.Error())
 				}
 
-				time.Sleep(cron.TimeLapse * cron.TimeUnit)
+				//time.Sleep(cron.TimeLapse * cron.TimeUnit)
+				time.Sleep(cron.TimeLapse * time.Second)
 			}
 
-			wg.Done()
-		}()
+			log.Println("Saliendo ??")
+
+		}(cron)
 	}
 
 	wg.Wait()
