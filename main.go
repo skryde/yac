@@ -28,7 +28,7 @@ func init() {
 
 	} else {
 		cmdPath = "/bin/bash"
-		cmdArg = []string{"~/bin/script.sh"}
+		cmdArg = []string{fmt.Sprintf("%s/bin/script.sh", os.Getenv("HOME"))}
 	}
 
 	switch jsconf.Exist(cronsFile) {
