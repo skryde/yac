@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/skryde/jsconf"
 	"log"
@@ -58,6 +59,9 @@ func init() {
 func main() {
 	wg := sync.WaitGroup{}
 
+	// Context stuff
+	cancelCtx, cancel := context.WithCancel(context.Background())
+
 	// Handling signals.
 	signalsChan := make(chan os.Signal, 1)
 	signal.Notify(signalsChan, os.Interrupt)
@@ -68,6 +72,7 @@ func main() {
 		select {
 		case <-signalsChan:
 			done = true
+			cancel()
 		}
 	}()
 
@@ -86,6 +91,11 @@ func main() {
 
 				//time.Sleep(cron.TimeLapse * cron.TimeUnit)
 				time.Sleep(cron.TimeLapse * time.Second)
+				timeoutCtx, _ := context.WithTimeout(cancelCtx, cron.TimeLapse*time.Second)
+				select {
+				case <-timeoutCtx.Done():
+					fmt.Println(cancelCtx.Err())
+				}
 			}
 
 			log.Println("Saliendo ??")
