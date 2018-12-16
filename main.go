@@ -59,7 +59,7 @@ func init() {
 func main() {
 	wg := sync.WaitGroup{}
 
-	// Context stuff
+	// Context stuff.
 	cancelCtx, cancel := context.WithCancel(context.Background())
 
 	// Handling signals.
@@ -89,9 +89,8 @@ func main() {
 					log.Fatalln(err.Error())
 				}
 
-				//time.Sleep(cron.TimeLapse * cron.TimeUnit)
-				time.Sleep(cron.TimeLapse * time.Second)
-				timeoutCtx, _ := context.WithTimeout(cancelCtx, cron.TimeLapse*time.Second)
+				// The program "sleeps" for cron.TimeLapse Minutes.
+				timeoutCtx, _ := context.WithTimeout(cancelCtx, cron.TimeLapse*time.Minute)
 				select {
 				case <-timeoutCtx.Done():
 					fmt.Println(cancelCtx.Err())
