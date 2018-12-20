@@ -59,6 +59,13 @@ func init() {
 func main() {
 	wg := sync.WaitGroup{}
 
+	// Log configuration.
+	file, err := logConfig()
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close() // Don't forget to close the file!
+
 	// Context stuff.
 	cancelCtx, cancel := context.WithCancel(context.Background())
 
@@ -73,6 +80,9 @@ func main() {
 		case <-signalsChan:
 			done = true
 			cancel()
+
+			// Log that the SIGINT was received
+			log.Println("SIGINT received")
 		}
 	}()
 
@@ -89,15 +99,18 @@ func main() {
 					log.Fatalln(err.Error())
 				}
 
+				// Log success message
+				log.Printf("Command '%s %s' ran successfully", cron.Command.Path, cron.Command.Args)
+
 				// The program "sleeps" for cron.TimeLapse Minutes.
 				timeoutCtx, _ := context.WithTimeout(cancelCtx, cron.TimeLapse*time.Minute)
 				select {
 				case <-timeoutCtx.Done():
-					fmt.Println(cancelCtx.Err())
+					if cancelCtx.Err() != nil {
+						log.Printf("Shutting down the service for command '%s %s'", cron.Command.Path, cron.Command.Args)
+					}
 				}
 			}
-
-			log.Println("Saliendo ??")
 
 		}(cron)
 	}
