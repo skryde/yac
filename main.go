@@ -64,7 +64,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close() // Don't forget to close the file!
+	defer func() {
+		// Don't forget to close the file!
+		// Changed from simple 'defer file.Close()' to this function to
+		// avoid 'Unhandled error' warning
+		if err := file.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	// Context stuff.
 	cancelCtx, cancel := context.WithCancel(context.Background())
