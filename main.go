@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"sync"
 	"time"
 )
@@ -65,14 +66,14 @@ func main() {
 				}
 
 				// Log success message
-				log.Printf("Command '%s %s' ran successfully", cron.Command.Path, cron.Command.Args)
+				log.Printf("Command '%s %s' ran successfully", cron.Command.Path, strings.Join(cron.Command.Args, " "))
 
 				// The program "sleeps" for cron.TimeLapse Minutes.
 				timeoutCtx, _ := context.WithTimeout(cancelCtx, cron.TimeLapse*time.Minute)
 				select {
 				case <-timeoutCtx.Done():
 					if cancelCtx.Err() != nil {
-						log.Printf("Shutting down the service for command '%s %s'", cron.Command.Path, cron.Command.Args)
+						log.Printf("Shutting down the service for command '%s %s'", cron.Command.Path, strings.Join(cron.Command.Args, " "))
 					}
 				}
 			}
