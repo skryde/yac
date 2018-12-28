@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-const cronsFile = "crons.json"
-
-var crons Crons
-
 func main() {
 	wg := sync.WaitGroup{}
 
