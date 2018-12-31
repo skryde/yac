@@ -15,6 +15,20 @@ This is a super-simpliffied cron, that run tasks every `n` minutes (where `n`) i
     # Coming soon
     ```
 
+## Files
+
+- `crons.json`:
+
+    In Windows it's saved in `%APPDATA%\yac`
+
+    In *nix it's saved in `$HOME/.config/yac`
+
+- `yac.log`
+
+    In Windows it's saved in `%APPDATA%\yac\logs`
+    
+    In *nix it's saved in `/var/log`
+
 ## FAQ
 
 **Q:** Is this simple 'cron' truly necessary?
