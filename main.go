@@ -33,18 +33,28 @@ func main() {
 
 	// Handling signals.
 	signalsChan := make(chan os.Signal, 1)
-	signal.Notify(signalsChan, os.Interrupt)
+	//signal.Notify(signalsChan, os.Interrupt, os.Kill)
+	signal.Notify(signalsChan)
 
 	// 'done' is used to stop the for loops user for each task.
 	var done = false
 	go func() {
 		select {
-		case <-signalsChan:
+		case s := <-signalsChan:
 			done = true
 			cancel()
 
 			// Log that the SIGINT was received
-			log.Println("SIGINT received")
+			switch s {
+			case os.Interrupt:
+				log.Println("SIGINT received")
+
+			case os.Kill:
+				log.Println("SIGKILL received")
+
+			default:
+				log.Printf("Received unhandled signal: %v\n", s)
+			}
 		}
 	}()
 
