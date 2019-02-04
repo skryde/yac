@@ -35,6 +35,11 @@ func logConfig() (*os.File, error) {
 		return nil, err
 	}
 
+	// If debug mode is enabled, we also log the file name.
+	if os.Getenv("YAC_DEBUG") == "true" {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+	}
+
 	log.SetOutput(file)
 	return file, nil
 }
